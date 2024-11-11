@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mapper namespace="z.han.userService.mapper.UserMapper">
+
+    <update id="modifyUser" parameterType="z.han.userService.model.User">
+        UPDATE users
+        SET password = #{password},
+        timezone = #{timezone},
+        email = #{email}
+        WHERE id = #{id}
+    </update>
+
+</mapper>
