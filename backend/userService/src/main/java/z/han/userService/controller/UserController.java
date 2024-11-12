@@ -1,6 +1,7 @@
 package z.han.userService.controller;
 
 import cn.dev33.satoken.annotation.SaCheckLogin;
+import cn.dev33.satoken.stp.SaTokenInfo;
 import cn.dev33.satoken.stp.StpUtil;
 import cn.dev33.satoken.util.SaResult;
 import jakarta.validation.Valid;
@@ -9,12 +10,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import z.han.userService.common.constant.AuthErrorCodes;
 import z.han.userService.dto.UserAuthTemplate;
 import z.han.userService.dto.UserRequestTemplate;
 import z.han.userService.service.UserService;
-
-import static z.han.common.constant.AuthErrorCodes.AUTH_FAILED_CODE;
-import static z.han.common.constant.AuthErrorCodes.USER_NOT_FOUND_CODE;
 
 @RequiredArgsConstructor
 @RestController
@@ -30,14 +29,7 @@ public class UserController {
         return SaResult.code(HttpStatus.CREATED.value()).setMsg("User registered successfully");
     }
 
-    //    @RequestMapping("/user/authenticate")
-//    public SaResult userAuthenticate(@Valid @RequestBody UserRequestTemplate userRequestTemplate) {
-//        boolean result = userService.authUser(userRequestTemplate);
-//        if (!result) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Unauthorized");
-//        }
-//        return ResponseEntity.status(HttpStatus.OK).body("Successfully authenticated");
-//    }
+
     @SaCheckLogin
     @RequestMapping("/user/modify")
     public SaResult modifyUser(@Valid @RequestBody UserRequestTemplate userRequestTemplate) {
@@ -51,10 +43,11 @@ public class UserController {
     @RequestMapping("/user/login")
     public SaResult login(@Valid @RequestBody UserAuthTemplate userAuthTemplate) {
         int result = userService.authUser(userAuthTemplate);
-        if (result != USER_NOT_FOUND_CODE && result != AUTH_FAILED_CODE) {
+        if (result != AuthErrorCodes.USER_NOT_FOUND_CODE && result != AuthErrorCodes.AUTH_FAILED_CODE) {
             StpUtil.login(result);
-            return SaResult.ok("User logged in successfully");
-        } else if (result == USER_NOT_FOUND_CODE) {
+            SaTokenInfo tokenInfo = StpUtil.getTokenInfo();
+            return SaResult.data(tokenInfo);
+        } else if (result == AuthErrorCodes.USER_NOT_FOUND_CODE) {
             return SaResult.error("User not found");
         } else {
             return SaResult.error("User not authorized");

@@ -8,13 +8,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import z.han.userService.common.constant.AuthErrorCodes;
 import z.han.userService.dto.UserAuthTemplate;
 import z.han.userService.dto.UserRequestTemplate;
 import z.han.userService.mapper.UserMapper;
 import z.han.userService.model.User;
-
-import static z.han.common.constant.AuthErrorCodes.AUTH_FAILED_CODE;
-import static z.han.common.constant.AuthErrorCodes.USER_NOT_FOUND_CODE;
 
 @RequiredArgsConstructor
 @Service
@@ -36,7 +34,7 @@ public class UserService {
         String hashedPassword = passwordEncoder.encode(userRequestTemplate.getPassword());
         User user_for_insertion = User.builder().email(userRequestTemplate.getEmail()).password(
                 hashedPassword).timezone(userRequestTemplate.getTimezone()).username(
-                userRequestTemplate.getUsername()).role("USER").build();
+                userRequestTemplate.getUsername()).build();
         userMapper.insertUser(user_for_insertion);
         return true;
     }
@@ -46,11 +44,11 @@ public class UserService {
 
         if (user == null) {
             logger.debug("User does not exist with username: " + userAuthTemplate.getUsername());
-            return USER_NOT_FOUND_CODE;
+            return AuthErrorCodes.USER_NOT_FOUND_CODE;
         }
 
         if (!passwordEncoder.matches(userAuthTemplate.getPassword(), user.getPassword())) {
-            return AUTH_FAILED_CODE;
+            return AuthErrorCodes.AUTH_FAILED_CODE;
         }
 
         return user.getId();
